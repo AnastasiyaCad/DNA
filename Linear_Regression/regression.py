@@ -3,6 +3,7 @@ import statsmodels.api as sm
 import pickle
 import os.path
 import openpyxl
+import xlrd, xlwt
 
 fname_list_cpg = 'list_cpg.pickle'  # list cpg
 fname_dict_cpg_chr = "dict_cpg_chr.pickle" # dictionary cpg-chromosome
@@ -10,12 +11,14 @@ fname_dict_cpg_gene = "dict_cpg_gene.pickle" # dictionary cpg-gene
 fname_dict_cpg_num = "dict_cpg_num.pickle" # dictionary cpg-number
 fname_matrix_betas = "matrix_betas.pickle"
 
-# открыть файл
-load_path = "C:/Users/PC/Documents/Linear_Regression/table.xlsx"
+# открыть файлы из
+load_path = "C:/Users/PC/Documents/DNA/Linear_Regression"
+load_path += "/table.xlsx"
 # сохранить файл в
-save_path = "C:/Users/PC/Documents/Linear_Regression/table.xlsx"
-
+save_path = "C:/Users/PC/Documents"
+save_path += '/table.xlsx'
 def open_files(name): # создает .pkl которых нет
+
     cpg_key = 'ID_REF'
     chr_key = 'CHR'
     gene_key = 'UCSC_REFGENE_NAME'
@@ -36,7 +39,7 @@ def open_files(name): # создает .pkl которых нет
     cpg_id = line_list.index(cpg_key)
     chr_id = line_list.index(chr_key)
     gene_id = line_list.index(gene_key)
-
+    i = 0
     for line in file:
         line_list = line.rstrip().split('\t')
         if line_list[chr_id] != 'X' and line_list[chr_id] != 'Y':
@@ -44,10 +47,17 @@ def open_files(name): # создает .pkl которых нет
                 continue
             else:
                 list_cpg.append(line_list[cpg_id])
+                i+=1
+                print(i)
                 if name == fname_dict_cpg_chr:
                      dict_cpg_chr_d[line_list[cpg_id]] = line_list[chr_id]
                 if name == fname_dict_cpg_gene:
                     dict_cpg_gene_d[line_list[cpg_id]] = line_list[gene_id]
+
+    if name == fname_list_cpg:
+        with open(fname_list_cpg, 'wb') as handle:
+            pickle.dump(list_cpg, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return list_cpg
 
     file.close()
 
@@ -73,6 +83,7 @@ def open_files(name): # создает .pkl которых нет
                 rows_betas = [float(s) for s in line_list[1::]]
                 matrix_betas[rows, :] = rows_betas
                 rows += 1
+                print(rows)
 
         file_betas.close()
 
@@ -82,12 +93,12 @@ def open_files(name): # создает .pkl которых нет
         return list_cpg
     if name == fname_dict_cpg_chr:
         with open(fname_dict_cpg_chr, 'wb') as handle:
-            pickle.dump(dict_cpg_chr, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        return dict_cpg_chr
+            pickle.dump(dict_cpg_chr_d, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return dict_cpg_chr_d
     if name == fname_dict_cpg_gene:
         with open(fname_dict_cpg_gene, 'wb') as handle:
-            pickle.dump(dict_cpg_gene, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        return dict_cpg_gene
+            pickle.dump(dict_cpg_gene_d, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return dict_cpg_gene_d
     if name == fname_dict_cpg_num:
         with open(fname_dict_cpg_num, 'wb') as handle:
             pickle.dump(dict_cpg_num, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -145,12 +156,12 @@ for line in file:
     age = line_list[age_id]
     p_age[p] = age
     line_age.append(int(age))
-
+a = 0
 #wb = xlwt.Workbook()
 #ws = wb.add_sheet('Table')
-
+#wb.save(save_path)
 wb = openpyxl.load_workbook(filename = load_path)
-ws = wb['table']
+ws = wb['Table']
 
 data = ["СpG", "Gene", "Chromosome", "R-squared", "Adj.R-squared", "F-statistic", "Prob(F-statistic)", "Intercept", "Slope"]
 i = 1
